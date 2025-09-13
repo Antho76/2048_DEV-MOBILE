@@ -5,6 +5,32 @@ void HomeDart() {
   runApp(const MyApp());
 }
 
+class MenuButton extends StatelessWidget {
+  final Widget child;
+  final VoidCallback onPressed;
+
+  const MenuButton({super.key, required this.child, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 300,
+      height: 60,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -14,7 +40,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'F1 2048',
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF1A1A2E), // fond sombre
+        scaffoldBackgroundColor: const Color(0xFF1A1A2E),
       ),
       home: const HomePage(),
     );
@@ -35,7 +61,7 @@ class HomePage extends StatelessWidget {
             Column(
               children: [
                 Image.asset(
-                  "assets/f1_logo.png",
+                  "assets/img/f1_logo.png",
                   height: 80,
                 ),
                 const SizedBox(height: 4),
@@ -51,9 +77,17 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 80),
 
-            // Boutons
+            // Play
             MenuButton(
-              text: "Play",
+              child: const Text(
+                "Play",
+                style: TextStyle(
+                  fontFamily: "Formula1",
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -62,39 +96,36 @@ class HomePage extends StatelessWidget {
               },
             ),
             const SizedBox(height: 20),
-            MenuButton(text: "Leaderboard", onPressed: () {}),
+
+            // Leaderboard
+            MenuButton(
+              child: const Text(
+                "Leaderboard",
+                style: TextStyle(
+                  fontFamily: "Formula1",
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              onPressed: () {},
+            ),
             const SizedBox(height: 20),
-            MenuButton(text: "Quit", onPressed: () {}),
+
+            // Quit
+            MenuButton(
+              child: const Text(
+                "Quit",
+                style: TextStyle(
+                  fontFamily: "Formula1",
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              onPressed: () {},
+            ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class MenuButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
-
-  const MenuButton({super.key, required this.text, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 220,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 20),
         ),
       ),
     );
