@@ -41,34 +41,39 @@ class Game2048Grid extends StatelessWidget {
   }
   @override
   Widget build(BuildContext context) {
-    return Table(
-      border: TableBorder.all(color: Colors.black12, width: 2),
-      children: grid.map((row) {
-        return TableRow(
-          children: row.map((cell) {
-            return AspectRatio(
-              aspectRatio: 1, // carré
-              child: Container(
-                margin: EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                    color: getTileColor(cell),
-                    borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    cell == 0 ? '' : '$cell',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.brown[800],
+    return Scaffold(
+      appBar: AppBar(title: const Text("F1 2048")),
+      body: Center(
+        child: Table(
+          border: TableBorder.all(color: Colors.black12, width: 2),
+          children: grid.map((row) {
+            return TableRow(
+              children: row.map((cell) {
+                return AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    margin: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: getTileColor(cell),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        cell == 0 ? '' : '$cell',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.brown[800],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              }).toList(),
             );
           }).toList(),
-        );
-      }).toList(),
+        ),
+      ),
     );
   }
 }

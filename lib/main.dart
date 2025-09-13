@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'grille.dart'; // 👈 importer ton fichier';
+import 'home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,14 +12,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: ThemeData(scaffoldBackgroundColor: const Color.fromRGBO(30,30,48,1)),
         home: Scaffold(
-            appBar: AppBar(title: const Text("2048 avec Table")),
             body: const Center(
-              child: Game2048Grid(),
-            ),// 👈 ici on appelle le widget
+              child: HomePage(),
+            ),
     ),
     );
   }
