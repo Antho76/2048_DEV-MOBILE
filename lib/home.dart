@@ -68,9 +68,10 @@ class HomePage extends StatelessWidget {
                 const Text(
                   "2048",
                   style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
+                    fontFamily: "Formula1",
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
+                    color: Colors.red,
                   ),
                 ),
               ],
