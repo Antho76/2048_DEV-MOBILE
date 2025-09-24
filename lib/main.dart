@@ -10,17 +10,12 @@ enum SwipeDirection { up, down, left, right }
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: ThemeData(scaffoldBackgroundColor: const Color.fromRGBO(30,30,48,1)),
         home: Scaffold(
-            appBar: AppBar(title: const Text("2048 avec Table")),
             body: const Center(
               child: TwentyFortyEight(),
             ),// 👈 ici on appelle le widget
