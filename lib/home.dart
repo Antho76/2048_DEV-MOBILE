@@ -1,5 +1,5 @@
+import 'package:devmobile/Game.dart';
 import 'package:flutter/material.dart';
-import 'grille.dart';
 
 void HomeDart() {
   runApp(const MyApp());
@@ -92,7 +92,7 @@ class HomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const Game2048Grid()),
+                  MaterialPageRoute(builder: (context) => const TwentyFortyEight()),
                 );
               },
             ),
