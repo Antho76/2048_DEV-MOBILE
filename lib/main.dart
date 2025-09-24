@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'grille.dart'; // 👈 importer ton fichier';
+import 'Game.dart'; // 👈 importer ton fichier';
 
 void main() {
   runApp(const MyApp());
 }
 
+enum SwipeDirection { up, down, left, right }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,7 @@ class MyApp extends StatelessWidget {
         home: Scaffold(
             appBar: AppBar(title: const Text("2048 avec Table")),
             body: const Center(
-              child: Game2048Grid(),
+              child: TwentyFortyEight(),
             ),// 👈 ici on appelle le widget
     ),
     );
