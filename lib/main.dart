@@ -1,3 +1,4 @@
+import 'package:devmobile/home.dart';
 import 'package:flutter/material.dart';
 import 'Game.dart'; // 👈 importer ton fichier';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(scaffoldBackgroundColor: const Color.fromRGBO(30,30,48,1)),
         home: Scaffold(
             body: const Center(
-              child: TwentyFortyEight(),
+              child: HomePage(),
             ),// 👈 ici on appelle le widget
     ),
     );
