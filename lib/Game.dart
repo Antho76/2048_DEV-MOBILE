@@ -4,6 +4,64 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:devmobile/grid-properties.dart';
 
+
+class TileWidgetWithImage extends StatelessWidget {
+  final double x;
+  final double y;
+  final double containerSize;
+  final double size;
+  final Color color; // fond de la case
+  final int number; // valeur numérique
+  final String? imagePath; // image optionnelle
+
+  const TileWidgetWithImage({
+    super.key,
+    required this.x,
+    required this.y,
+    required this.containerSize,
+    required this.size,
+    required this.color,
+    required this.number,
+    this.imagePath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: x,
+      top: y,
+      child: Container(
+        width: containerSize,
+        height: containerSize,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(cornerRadius),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (imagePath != null)
+              Image.asset(
+                imagePath!,
+                width: size * 0.8,
+                height: size * 0.8,
+                fit: BoxFit.contain,
+              ),
+            Text(
+              number > 0 ? number.toString() : '',
+              style: TextStyle(
+                color: numTextColor[number] ?? Colors.white,
+                fontSize: size * 0.4,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 enum SwipeDirection {
   up,
   down,
@@ -100,15 +158,17 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
       animation: controller,
       builder: (context, child) => tile.animatedValue.value == 0
           ? const SizedBox()
-          : TileWidget(
+          : TileWidgetWithImage(
         x: tileSize * tile.animatedX.value,
         y: tileSize * tile.animatedY.value,
         containerSize: tileSize,
-        size: (tileSize - borderSize * 2) * tile.size.value,
+        size: tileSize - borderSize * 2,
         color: numTileColor[tile.animatedValue.value] ?? Colors.grey,
-        child: Center(child: TileNumber(tile.animatedValue.value)),
+        number: tile.animatedValue.value,
+        imagePath: "assets/img/ecurie_${tile.animatedValue.value}.png",
       ),
     )));
+
 
     return Scaffold(
       backgroundColor: Background, // Fond principal
