@@ -38,23 +38,29 @@ class TileWidgetWithImage extends StatelessWidget {
           borderRadius: BorderRadius.circular(cornerRadius),
         ),
         child: Stack(
-          alignment: Alignment.center,
           children: [
             if (imagePath != null)
-              Image.asset(
-                imagePath!,
-                width: size * 0.8,
-                height: size * 0.8,
-                fit: BoxFit.contain,
+              Center(
+                child: Image.asset(
+                  imagePath!,
+                  width: size * 0.8,
+                  height: size * 0.8,
+                  fit: BoxFit.contain,
+                ),
               ),
-            Text(
-              number > 0 ? number.toString() : '',
-              style: TextStyle(
-                color: numTextColor[number] ?? Colors.white,
-                fontSize: size * 0.4,
-                fontWeight: FontWeight.bold,
+            if (number > 0)
+              Positioned(
+                bottom: 4,
+                right: 4,
+                child: Text(
+                  number.toString(),
+                  style: TextStyle(
+                    color: numTextColor[number] ?? Colors.white,
+                    fontSize: size * 0.25,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
           ],
         ),
       ),
