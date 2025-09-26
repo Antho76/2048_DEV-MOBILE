@@ -1,6 +1,6 @@
 import 'package:devmobile/AnimatedTiles.dart';
 import 'dart:async';
-
+import 'EndGamePopUp.dart';
 import 'package:flutter/material.dart';
 import 'package:devmobile/grid-properties.dart';
 
@@ -127,6 +127,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
                       ))),
               // BigButton doit accepter un onPressed nullable pour que `null` désactive le bouton.
               BigButton(label: "Undo", color: numColor, onPressed: gameStates.isEmpty ? null : undoMove),
+              BigButton(label: "Popup", color: orange, onPressed:() => _showDialog(context)),
               BigButton(label: "Restart", color: orange, onPressed: setupNewGame),
             ])));
   }
@@ -162,6 +163,50 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     });
   }
 
+  void _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color.fromRGBO(30,30,48,1),
+          title: const Center(
+            child: Text(
+              "C'est la défaite",
+              style: TextStyle(
+                fontFamily: "Formula1",
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              )
+          ),
+          ),
+          content: SizedBox(
+            width:500,
+            height:200,
+            child: Center(
+              child:Text(
+                "You are awesome!",
+              ),
+            ),
+          ),
+          actions: [
+            MaterialButton(
+              child: const Text(
+                  "OK",
+                  style: TextStyle(
+                  color: Colors.white
+                  )
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void merge(SwipeDirection direction) {
     late bool Function() mergeFn;
     switch (direction) {
@@ -188,6 +233,12 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         gameStates.add(GameState(gridBeforeSwipe, direction));
         addNewTiles([2]);
         controller.forward(from: 0);
+
+        if (isGameOver(grid)){
+          Future.delayed(const Duration(milliseconds: 300), (){
+            _showDialog(context);
+          });
+        }
       }
     });
   }
@@ -244,6 +295,57 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       toAdd.add(AnimatedTiles(empty[i].x, empty[i].y, values[i])..appear(controller));
     }
   }
+
+  List<List<AnimatedTiles>> createTestGrid(List<List<int>> values) {
+    final int size = values.length;
+    List<List<AnimatedTiles>> grid = [];
+
+    for (int i = 0; i < size; i++) {
+      List<AnimatedTiles> row = [];
+      for (int j = 0; j < size; j++) {
+        row.add(AnimatedTiles(i, j, values[i][j]));
+      }
+      grid.add(row);
+    }
+
+    return grid;
+  }
+
+  //fixed grid size
+  bool isGameOver(List<List<AnimatedTiles>> grid) {
+    final int size = grid.length;
+    List<List<int>> testValues = [
+      [2, 8, 4, 2],
+      [4, 32, 16, 4],
+      [8, 16, 128, 16],
+      [2, 4, 16, 2],
+    ];
+    grid = createTestGrid(testValues);
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
+        final current = grid[i][j].value;
+
+        if (current == 0) {
+          return false;
+        }
+
+        // 2. Vérifier les voisins
+        // Droite
+        if (j + 1 < size && current == grid[i][j + 1].value) {
+          return false;
+        }
+        // Bas
+        if (i + 1 < size && current == grid[i + 1][j].value) {
+          return false;
+        }
+      }
+    }
+
+    // Si aucune case vide ni fusion possible → perdu
+    return true;
+  }
+
+
 
   void setupNewGame() {
     setState(() {
