@@ -442,6 +442,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
           randomJ = random.nextInt(4);
         }
       }
+
   }
 
   bool isGameOver(List<List<AnimatedTiles>> grid) {

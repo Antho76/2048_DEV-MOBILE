@@ -49,7 +49,7 @@ const Map<int, Color> numTextColor = {
   8: Colors.white,
   16: Colors.white,
   32: Colors.white,
-  64: Colors.white,
+  64: Colors.black,
   128: Colors.white,
   256: Colors.white,
   512: Colors.white,
