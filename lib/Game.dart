@@ -128,12 +128,15 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
           }
           toAdd.clear();
           int number = 0;
-          number=Random().nextInt(30);
-          if(number==1){
+          number=Random().nextInt(10);
+          if(number==4){
             redFlag(grid);
           }
           if(number==2){
             pitStop();
+          }
+          if(number==1){
+            yellowFlag();
           }
           if (isGameOver(grid)){
             Future.delayed(const Duration(milliseconds: 300), (){
@@ -275,17 +278,62 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   }
 
   void pitStop() {
+
     var random = Random();
     bool blockRowFlag = random.nextBool();
     if (blockRowFlag) {
+
       blockedRow = random.nextInt(4);
       blockedCol = null;
-      print("PITSTOP : ligne $blockedRow bloquée !");
+      setState(() {
+        _isInputLocked = true;
+        eventMessage = "🏎 PitStop! Ligne ${blockedRow!+1} bloquée pour le prochain coup!";
+      });
+
     } else {
       blockedCol = random.nextInt(4);
       blockedRow = null;
-      print("PITSTOP : colonne $blockedCol bloquée !");
+      setState(() {
+        _isInputLocked = true;
+        eventMessage = "🏎 PitStop! Colonne ${blockedCol!+1} bloquée pour le prochain coup!";
+      });
     }
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          eventMessage = null;
+          _isInputLocked = false;
+        });
+      }
+    });
+  }
+
+  void yellowFlag() {
+
+    final List<AnimatedTiles> candidates = gridTiles.where((t) => t.value > 2).toList();
+    if (candidates.isEmpty) return;
+    setState(() {
+      _isInputLocked = true;
+    });
+    final tile = candidates[Random().nextInt(candidates.length)];
+    setState(() {
+      tile.value = tile.value ~/ 2;
+      tile.changeNumber(controller, tile.value);
+      tile.bounce(controller);
+    });
+    setState(() {
+
+      eventMessage = "DRAPEAU JAUNE : tuile (${tile.x}, ${tile.y}) est divisé par 2 ! -> ${tile.value} !";
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          eventMessage = null;
+          _isInputLocked = false;
+        });
+      }
+    });
+
   }
 
   void undoMove() {
