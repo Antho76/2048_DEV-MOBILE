@@ -5,15 +5,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:devmobile/grid-properties.dart';
 
-
 class TileWidgetWithImage extends StatelessWidget {
   final double x;
   final double y;
   final double containerSize;
   final double size;
-  final Color color; // fond de la case
-  final int number; // valeur numérique
-  final String? imagePath; // image optionnelle
+  final Color color;
+  final int number;
+  final String? imagePath;
 
   const TileWidgetWithImage({
     super.key,
@@ -69,17 +68,14 @@ class TileWidgetWithImage extends StatelessWidget {
   }
 }
 
-enum SwipeDirection {
-  up,
-  down,
-  left,
-  right,
-}
+enum SwipeDirection { up, down, left, right }
+
 class GameState {
   final List<List<AnimatedTiles>> _previousGrid;
   final SwipeDirection swipe;
 
-  GameState(List<List<AnimatedTiles>> previousGrid, this.swipe) : _previousGrid = previousGrid;
+  GameState(List<List<AnimatedTiles>> previousGrid, this.swipe)
+      : _previousGrid = previousGrid;
 
   List<List<AnimatedTiles>> get previousGrid =>
       _previousGrid.map((row) => row.map((tile) => tile.copy()).toList()).toList();
@@ -92,9 +88,9 @@ class TwentyFortyEight extends StatefulWidget {
   TwentyFortyEightState createState() => TwentyFortyEightState();
 }
 
-class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerProviderStateMixin {
+class TwentyFortyEightState extends State<TwentyFortyEight>
+    with SingleTickerProviderStateMixin {
   late AnimationController controller;
-
   List<List<AnimatedTiles>> grid =
   List.generate(4, (y) => List.generate(4, (x) => AnimatedTiles(x, y, 0)));
   List<GameState> gameStates = [];
@@ -110,8 +106,8 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   @override
   void initState() {
     super.initState();
-
-    controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    controller =
+        AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
     controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
@@ -122,18 +118,17 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             t.resetAnimations();
           }
           toAdd.clear();
-          if(Random().nextInt(2)==1){
+          if (Random().nextInt(2) == 1) {
             redFlag(grid);
           }
-          if (isGameOver(grid)){
-            Future.delayed(const Duration(milliseconds: 300), (){
+          if (isGameOver(grid)) {
+            Future.delayed(const Duration(milliseconds: 300), () {
               _showDialog(context);
             });
           }
         });
       }
     });
-
     setupNewGame();
   }
 
@@ -152,7 +147,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     final double tileSize = (gridSize - borderSize * 2) / 4;
     List<Widget> stackItems = [];
 
-
     stackItems.addAll(gridTiles.map((t) => TileWidget(
       x: tileSize * t.x,
       y: tileSize * t.y,
@@ -161,7 +155,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       color: gridLine,
       child: const SizedBox(),
     )));
-
 
     stackItems.addAll(allTiles.map((tile) => AnimatedBuilder(
       animation: controller,
@@ -178,63 +171,71 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       ),
     )));
 
-
     return Scaffold(
-      backgroundColor: Background, // Fond principal
-      body: Padding(
-        padding: const EdgeInsets.all(contentPadding),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-              Image.asset(
-                "assets/img/f1_logo.png",
-                height: 80,
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                "2048",
-                style: TextStyle(
-                  fontFamily: "Formula1",
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
+      backgroundColor: Background,
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(contentPadding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                Image.asset("assets/img/f1_logo.png", height: 80),
+                const SizedBox(height: 4),
+                const Text(
+                  "2048",
+                  style: TextStyle(
+                    fontFamily: "Formula1",
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
                 ),
-              ),
-            const SizedBox(height: 16), // espace entre l'image et la grille
-
-            // Grille
-            Swiper(
-              up: () => merge(SwipeDirection.up),
-              down: () => merge(SwipeDirection.down),
-              left: () => merge(SwipeDirection.left),
-              right: () => merge(SwipeDirection.right),
-              child: Container(
-                height: gridSize,
-                width: gridSize,
-                padding: const EdgeInsets.all(borderSize),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(cornerRadius),
-                  color: gridBackground, // couleur de la grille
+                const SizedBox(height: 16),
+                Swiper(
+                  up: () => merge(SwipeDirection.up),
+                  down: () => merge(SwipeDirection.down),
+                  left: () => merge(SwipeDirection.left),
+                  right: () => merge(SwipeDirection.right),
+                  child: Container(
+                    height: gridSize,
+                    width: gridSize,
+                    padding: const EdgeInsets.all(borderSize),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(cornerRadius),
+                      color: gridBackground,
+                    ),
+                    child: Stack(children: stackItems),
+                  ),
                 ),
-                child: Stack(children: stackItems),
-              ),
+                const SizedBox(height: 24),
+                BigButton(
+                  label: "Undo",
+                  color: numColor,
+                  onPressed: gameStates.isEmpty ? null : undoMove,
+                ),
+                const SizedBox(height: 12),
+                BigButton(
+                  label: "Restart",
+                  color: orange,
+                  onPressed: setupNewGame,
+                ),
+              ],
             ),
-            const SizedBox(height: 24), // espace entre grille et boutons
-
-            // Boutons
-            BigButton(
-              label: "Undo",
-              color: numColor, // bouton Undo
-              onPressed: gameStates.isEmpty ? null : undoMove,
+          ),
+          Positioned(
+            top: 40,
+            left: 16,
+            child: IconButton(
+              icon: const Icon(Icons.home, color: Colors.black, size: 32),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              tooltip: "Retour au menu",
             ),
-            const SizedBox(height: 12),
-            BigButton(
-              label: "Restart",
-              color: orange, // bouton Restart
-              onPressed: setupNewGame,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -257,11 +258,11 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         break;
     }
     setState(() {
-      this.grid = previousState.previousGrid;
+      grid = previousState.previousGrid;
       mergeFn();
       controller.reverse(from: .99).then((_) {
         setState(() {
-          this.grid = previousState.previousGrid;
+          grid = previousState.previousGrid;
           for (final t in gridTiles) {
             t.resetAnimations();
           }
@@ -275,7 +276,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Color.fromRGBO(30,30,48,1),
+          backgroundColor: const Color.fromRGBO(30, 30, 48, 1),
           title: const Center(
             child: Text(
               "C'est la défaite",
@@ -284,42 +285,27 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-              )
-          ),
-          ),
-          content: SizedBox(
-            width:500,
-            height:200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children:[
-                Image.asset(
-                  'assets/img/alonso.jpg',
-                  width: 120,
-                  height: 120,
-                ),
-                const SizedBox(height:20),
-
-                const Text(
-                  "Engine feels good, much slower than before",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
-                ),
-              ]
-
               ),
             ),
-
+          ),
+          content: SizedBox(
+            width: 500,
+            height: 200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/img/alonso.jpg', width: 120, height: 120),
+                const SizedBox(height: 20),
+                const Text(
+                  "Engine feels good, much slower than before",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ],
+            ),
+          ),
           actions: [
             MaterialButton(
-              child: const Text(
-                  "OK",
-                  style: TextStyle(
-                  color: Colors.white
-                  )
-              ),
+              child: const Text("OK", style: TextStyle(color: Colors.white)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -346,11 +332,8 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         mergeFn = mergeRight;
         break;
     }
-
-
     final List<List<AnimatedTiles>> gridBeforeSwipe =
     grid.map((row) => row.map((tile) => tile.copy()).toList()).toList();
-
     setState(() {
       if (mergeFn()) {
         gameStates.add(GameState(gridBeforeSwipe, direction));
@@ -361,26 +344,20 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   }
 
   bool mergeLeft() => grid.map((e) => mergeTiles(e)).toList().any((e) => e);
-
   bool mergeRight() => grid.map((e) => mergeTiles(e.reversed.toList())).toList().any((e) => e);
-
   bool mergeUp() => gridCols.map((e) => mergeTiles(e)).toList().any((e) => e);
-
   bool mergeDown() => gridCols.map((e) => mergeTiles(e.reversed.toList())).toList().any((e) => e);
 
   bool mergeTiles(List<AnimatedTiles> tiles) {
     bool didChange = false;
-
     for (int i = 0; i < tiles.length; i++) {
       for (int j = i; j < tiles.length; j++) {
         if (tiles[j].value != 0) {
           int k = tiles.indexWhere((t) => t.value != 0, j + 1);
           AnimatedTiles? mergeTile = (k != -1) ? tiles[k] : null;
-
           if (mergeTile != null && mergeTile.value != tiles[j].value) {
             mergeTile = null;
           }
-
           if (i != j || mergeTile != null) {
             didChange = true;
             int resultValue = tiles[j].value;
@@ -400,18 +377,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         }
       }
     }
-
-    //events part
-    var random = Random();
-    int randomEvent = random.nextInt(2);
-    /*if(randomEvent==1){
-      Future.microtask(() {
-        setState(() {
-          redFlag(grid);
-        });
-      });
-      }*/
-
     return didChange;
   }
 
@@ -423,62 +388,38 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     }
   }
 
-  void redFlag(List<List<AnimatedTiles>> grid){
-      var random = Random();
-      int randomI = random.nextInt(4);
-      int randomJ = random.nextInt(4);
-      bool ok = false;
-      while (!ok) {
-        final tile = grid[randomI][randomJ];
-        if (tile.value != 0) {
-          setState(() {
-            tile.value = 0;
-            tile.changeNumber(controller, 0);
-            tile.resetAnimations();
-          });
-          ok = true;
-        } else {
-          randomI = random.nextInt(4);
-          randomJ = random.nextInt(4);
-        }
+  void redFlag(List<List<AnimatedTiles>> grid) {
+    var random = Random();
+    int randomI = random.nextInt(4);
+    int randomJ = random.nextInt(4);
+    bool ok = false;
+    while (!ok) {
+      final tile = grid[randomI][randomJ];
+      if (tile.value != 0) {
+        setState(() {
+          tile.value = 0;
+          tile.changeNumber(controller, 0);
+          tile.resetAnimations();
+        });
+        ok = true;
+      } else {
+        randomI = random.nextInt(4);
+        randomJ = random.nextInt(4);
       }
-
+    }
   }
 
   bool isGameOver(List<List<AnimatedTiles>> grid) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        if (grid[i][j].value == 0) {
-          print(1);
-          return false; // Il reste une case vide
-        }
-        if (i > 0 && grid[i][j].value == grid[i - 1][j].value) {
-          print(2);
-          return false; // Fusion possible en haut
-        }
-        if (i < 3 && grid[i][j].value == grid[i + 1][j].value) {
-          print(3);
-          return false; // Fusion possible en bas
-
-        }
-        if (j > 0 && grid[i][j].value == grid[i][j - 1].value) {
-          print(4);
-          return false; // Fusion possible à gauche
-
-        }
-        if (j < 3 && grid[i][j].value == grid[i][j + 1].value)
-        {
-          print(5);
-          return false;
-        } // Fusion possible à droite
+        if (grid[i][j].value == 0) return false;
+        if (i > 0 && grid[i][j].value == grid[i - 1][j].value) return false;
+        if (i < 3 && grid[i][j].value == grid[i + 1][j].value) return false;
+        if (j > 0 && grid[i][j].value == grid[i][j - 1].value) return false;
+        if (j < 3 && grid[i][j].value == grid[i][j + 1].value) return false;
       }
     }
-    for(int i=0;i<4;i++){
-      for(int j=0;j<4;j++){
-        print(grid[i][j].value);
-      }
-    }
-    return true; // Aucune case vide et aucune fusion possible
+    return true;
   }
 
   void setupNewGame() {
