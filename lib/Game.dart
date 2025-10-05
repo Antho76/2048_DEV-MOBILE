@@ -161,25 +161,30 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   Widget build(BuildContext context) {
     const double contentPadding = 16;
     const double borderSize = 4;
-    final double gridSize = MediaQuery.of(context).size.width - contentPadding * 2;
+    final double gridSize = MediaQuery
+        .of(context)
+        .size
+        .width - contentPadding * 2;
     final double tileSize = (gridSize - borderSize * 2) / 4;
     List<Widget> stackItems = [];
 
 
-    stackItems.addAll(gridTiles.map((t) => TileWidget(
-      x: tileSize * t.x,
-      y: tileSize * t.y,
-      containerSize: tileSize,
-      size: tileSize - borderSize * 2,
-      color: gridLine,
-      child: const SizedBox(),
-    )));
+    stackItems.addAll(gridTiles.map((t) =>
+        TileWidget(
+          x: tileSize * t.x,
+          y: tileSize * t.y,
+          containerSize: tileSize,
+          size: tileSize - borderSize * 2,
+          color: gridLine,
+          child: const SizedBox(),
+        )));
 
     stackItems.addAll(allTiles.map((tile) {
       bool isBlocked = (blockedRow == tile.y) || (blockedCol == tile.x);
       return AnimatedBuilder(
         animation: controller,
-        builder: (context, child) => tile.animatedValue.value == 0
+        builder: (context, child) =>
+        tile.animatedValue.value == 0
             ? const SizedBox()
             : TileWidgetWithImage(
           x: tileSize * tile.animatedX.value,
@@ -195,89 +200,110 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     }));
 
     return Scaffold(
-      backgroundColor: Background, // Fond principal
-      body: Padding(
-        padding: const EdgeInsets.all(contentPadding),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-              Image.asset(
-                "assets/img/f1_logo.png",
-                height: 80,
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                "2048",
-                style: TextStyle(
-                  fontFamily: "Formula1",
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
+      backgroundColor: Background,
+      body: Stack(
+        children: [
+          // Contenu principal
+          Padding(
+            padding: const EdgeInsets.all(contentPadding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Image.asset(
+                  "assets/img/f1_logo.png",
+                  height: 80,
                 ),
-              ),
-            const SizedBox(height: 16), // espace entre l'image et la grille
-
-            // Grille
-            Swiper(
-              up: () => !_isInputLocked ? merge(SwipeDirection.up) : null,
-              down: () => !_isInputLocked ? merge(SwipeDirection.down) : null,
-              left: () => !_isInputLocked ? merge(SwipeDirection.left) : null,
-              right: () => !_isInputLocked ? merge(SwipeDirection.right) : null,
-              child: Container(
-                height: gridSize,
-                width: gridSize,
-                padding: const EdgeInsets.all(borderSize),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(cornerRadius),
-                  color: gridBackground, // couleur de la grille
+                const SizedBox(height: 4),
+                const Text(
+                  "2048",
+                  style: TextStyle(
+                    fontFamily: "Formula1",
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
                 ),
-                child: Stack(children: stackItems),
-              ),
+                const SizedBox(height: 16),
+                Swiper(
+                  up: () => !_isInputLocked ? merge(SwipeDirection.up) : null,
+                  down: () =>
+                  !_isInputLocked
+                      ? merge(SwipeDirection.down)
+                      : null,
+                  left: () =>
+                  !_isInputLocked
+                      ? merge(SwipeDirection.left)
+                      : null,
+                  right: () =>
+                  !_isInputLocked
+                      ? merge(SwipeDirection.right)
+                      : null,
+                  child: Container(
+                    height: gridSize,
+                    width: gridSize,
+                    padding: const EdgeInsets.all(borderSize),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(cornerRadius),
+                      color: gridBackground,
+                    ),
+                    child: Stack(children: stackItems),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                if (eventMessage != null) ...[
+                  const SizedBox(height: 16),
+                  AnimatedOpacity(
+                    opacity: eventMessage != null ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Column(
+                      children: [
+                        const Text(
+                          "🏁 Fait de course ! 🏁",
+                          style: TextStyle(
+                            fontFamily: "Formula1",
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          eventMessage!,
+                          style: const TextStyle(
+                            fontFamily: "Formula1",
+                            fontSize: 18,
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 24), // espace entre grille et boutons
+          ),
 
-            if (eventMessage != null) ...[
-              const SizedBox(height: 16),
-              AnimatedOpacity(
-                opacity: eventMessage != null ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: Column(
-                  children: [
-                    const Text(
-                      "🏁 Fait de course ! 🏁",
-                      style: TextStyle(
-                        fontFamily: "Formula1",
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      eventMessage!,
-                      style: const TextStyle(
-                        fontFamily: "Formula1",
-                        fontSize: 18,
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-          ],
-
-
-        ),
+          // Bouton Home en haut à gauche
+          Positioned(
+            top: 16,
+            left: 16,
+            child: IconButton(
+              icon: const Icon(Icons.home, color: Colors.black, size: 32),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              tooltip: "Retour au menu",
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  void pitStop() {
+    void pitStop() {
 
     var random = Random();
     bool blockRowFlag = random.nextBool();
