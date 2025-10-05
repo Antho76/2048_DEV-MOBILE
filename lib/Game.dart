@@ -99,7 +99,8 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   List.generate(4, (y) => List.generate(4, (x) => AnimatedTiles(x, y, 0)));
   List<GameState> gameStates = [];
   List<AnimatedTiles> toAdd = [];
-
+  String? eventMessage;
+  bool _isInputLocked = false;
   Iterable<AnimatedTiles> get gridTiles => grid.expand((e) => e);
   Iterable<AnimatedTiles> get allTiles => [gridTiles, toAdd].expand((e) => e);
   List<List<AnimatedTiles>> get gridCols =>
@@ -122,7 +123,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             t.resetAnimations();
           }
           toAdd.clear();
-          if(Random().nextInt(2)==1){
+          if(Random().nextInt(30)==1){
             redFlag(grid);
           }
           if (isGameOver(grid)){
@@ -204,10 +205,10 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
 
             // Grille
             Swiper(
-              up: () => merge(SwipeDirection.up),
-              down: () => merge(SwipeDirection.down),
-              left: () => merge(SwipeDirection.left),
-              right: () => merge(SwipeDirection.right),
+              up: () => !_isInputLocked ? merge(SwipeDirection.up) : null,
+              down: () => !_isInputLocked ? merge(SwipeDirection.down) : null,
+              left: () => !_isInputLocked ? merge(SwipeDirection.left) : null,
+              right: () => !_isInputLocked ? merge(SwipeDirection.right) : null,
               child: Container(
                 height: gridSize,
                 width: gridSize,
@@ -221,19 +222,42 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             ),
             const SizedBox(height: 24), // espace entre grille et boutons
 
-            // Boutons
-            BigButton(
-              label: "Undo",
-              color: numColor, // bouton Undo
-              onPressed: gameStates.isEmpty ? null : undoMove,
-            ),
-            const SizedBox(height: 12),
-            BigButton(
-              label: "Restart",
-              color: orange, // bouton Restart
-              onPressed: setupNewGame,
-            ),
+            if (eventMessage != null) ...[
+              const SizedBox(height: 16),
+              AnimatedOpacity(
+                opacity: eventMessage != null ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: Column(
+                  children: [
+                    const Text(
+                      "🏁 Fait de course ! 🏁",
+                      style: TextStyle(
+                        fontFamily: "Formula1",
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      eventMessage!,
+                      style: const TextStyle(
+                        fontFamily: "Formula1",
+                        fontSize: 18,
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
           ],
+
+
         ),
       ),
     );
@@ -424,6 +448,17 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   }
 
   void redFlag(List<List<AnimatedTiles>> grid){
+      setState(() {
+        _isInputLocked = true;
+        eventMessage = "💥 Crash entre coéquipiers! Une écurie est éliminée !";
+      });
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            eventMessage = null;
+          });
+        }
+
       var random = Random();
       int randomI = random.nextInt(4);
       int randomJ = random.nextInt(4);
@@ -435,13 +470,25 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             tile.value = 0;
             tile.changeNumber(controller, 0);
             tile.resetAnimations();
+
+            eventMessage = "💥 Crash entre coéquipiers! Une écurie est éliminée !";
           });
+
           ok = true;
         } else {
           randomI = random.nextInt(4);
           randomJ = random.nextInt(4);
         }
       }
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              eventMessage = null;
+              _isInputLocked = false;
+            });
+          }
+        });
+      });
 
   }
 
