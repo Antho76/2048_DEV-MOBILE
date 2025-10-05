@@ -13,6 +13,7 @@ class TileWidgetWithImage extends StatelessWidget {
   final Color color;
   final int number;
   final String? imagePath;
+  final bool isBlocked;
 
   const TileWidgetWithImage({
     super.key,
@@ -23,6 +24,7 @@ class TileWidgetWithImage extends StatelessWidget {
     required this.color,
     required this.number,
     this.imagePath,
+    this.isBlocked = false,
   });
 
   @override
@@ -30,38 +32,41 @@ class TileWidgetWithImage extends StatelessWidget {
     return Positioned(
       left: x,
       top: y,
-      child: Container(
-        width: containerSize,
-        height: containerSize,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(cornerRadius),
-        ),
-        child: Stack(
-          children: [
-            if (imagePath != null)
-              Center(
-                child: Image.asset(
-                  imagePath!,
-                  width: size * 0.8,
-                  height: size * 0.8,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            if (number > 0)
-              Positioned(
-                bottom: 4,
-                right: 4,
-                child: Text(
-                  number.toString(),
-                  style: TextStyle(
-                    color: numTextColor[number] ?? Colors.white,
-                    fontSize: size * 0.25,
-                    fontWeight: FontWeight.bold,
+      child: Opacity(
+        opacity: isBlocked ? 0.5 : 1,
+        child: Container(
+          width: containerSize,
+          height: containerSize,
+          decoration: BoxDecoration(
+            color: isBlocked ? Colors.grey : color,
+            borderRadius: BorderRadius.circular(cornerRadius),
+          ),
+          child: Stack(
+            children: [
+              if (imagePath != null)
+                Center(
+                  child: Image.asset(
+                    imagePath!,
+                    width: size * 0.8,
+                    height: size * 0.8,
+                    fit: BoxFit.contain,
                   ),
                 ),
-              ),
-          ],
+              if (number > 0)
+                Positioned(
+                  bottom: 4,
+                  right: 4,
+                  child: Text(
+                    number.toString(),
+                    style: TextStyle(
+                      color: numTextColor[number] ?? Colors.white,
+                      fontSize: size * 0.25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -83,7 +88,6 @@ class GameState {
 
 class TwentyFortyEight extends StatefulWidget {
   const TwentyFortyEight({super.key});
-
   @override
   TwentyFortyEightState createState() => TwentyFortyEightState();
 }
@@ -95,19 +99,19 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
   List.generate(4, (y) => List.generate(4, (x) => AnimatedTiles(x, y, 0)));
   List<GameState> gameStates = [];
   List<AnimatedTiles> toAdd = [];
+  int? blockedRow;
+  int? blockedCol;
+  bool pitStopToggle = true; // pour activer le pitstop une fois sur deux
 
   Iterable<AnimatedTiles> get gridTiles => grid.expand((e) => e);
   Iterable<AnimatedTiles> get allTiles => [gridTiles, toAdd].expand((e) => e);
   List<List<AnimatedTiles>> get gridCols =>
       List.generate(4, (x) => List.generate(4, (y) => grid[y][x]));
 
-  Timer? aiTimer;
-
   @override
   void initState() {
     super.initState();
-    controller =
-        AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
     controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
@@ -118,9 +122,19 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
             t.resetAnimations();
           }
           toAdd.clear();
-          if (Random().nextInt(2) == 1) {
+
+          // PITSTOP une fois sur deux
+          if (pitStopToggle) {
+            pitStop();
+          }
+          pitStopToggle = !pitStopToggle;
+
+          // RedFlag aléatoire
+          int event = Random().nextInt(10);
+          if (event == 2) {
             redFlag(grid);
           }
+
           if (isGameOver(grid)) {
             Future.delayed(const Duration(milliseconds: 300), () {
               _showDialog(context);
@@ -135,7 +149,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
   @override
   void dispose() {
     controller.dispose();
-    aiTimer?.cancel();
     super.dispose();
   }
 
@@ -156,20 +169,24 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
       child: const SizedBox(),
     )));
 
-    stackItems.addAll(allTiles.map((tile) => AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) => tile.animatedValue.value == 0
-          ? const SizedBox()
-          : TileWidgetWithImage(
-        x: tileSize * tile.animatedX.value,
-        y: tileSize * tile.animatedY.value,
-        containerSize: tileSize,
-        size: tileSize - borderSize * 2,
-        color: numTileColor[tile.animatedValue.value] ?? Colors.grey,
-        number: tile.animatedValue.value,
-        imagePath: "assets/img/ecurie_${tile.animatedValue.value}.png",
-      ),
-    )));
+    stackItems.addAll(allTiles.map((tile) {
+      bool isBlocked = (blockedRow == tile.y) || (blockedCol == tile.x);
+      return AnimatedBuilder(
+        animation: controller,
+        builder: (context, child) => tile.animatedValue.value == 0
+            ? const SizedBox()
+            : TileWidgetWithImage(
+          x: tileSize * tile.animatedX.value,
+          y: tileSize * tile.animatedY.value,
+          containerSize: tileSize,
+          size: tileSize - borderSize * 2,
+          color: numTileColor[tile.animatedValue.value] ?? Colors.grey,
+          number: tile.animatedValue.value,
+          imagePath: "assets/img/ecurie_${tile.animatedValue.value}.png",
+          isBlocked: isBlocked,
+        ),
+      );
+    }));
 
     return Scaffold(
       backgroundColor: Background,
@@ -240,34 +257,28 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
     );
   }
 
-  void undoMove() {
-    final GameState previousState = gameStates.removeLast();
-    late bool Function() mergeFn;
-    switch (previousState.swipe) {
-      case SwipeDirection.up:
-        mergeFn = mergeUp;
-        break;
-      case SwipeDirection.down:
-        mergeFn = mergeDown;
-        break;
-      case SwipeDirection.left:
-        mergeFn = mergeLeft;
-        break;
-      case SwipeDirection.right:
-        mergeFn = mergeRight;
-        break;
+  void pitStop() {
+    var random = Random();
+    bool blockRowFlag = random.nextBool();
+    if (blockRowFlag) {
+      blockedRow = random.nextInt(4);
+      blockedCol = null;
+      print("PITSTOP : ligne $blockedRow bloquée !");
+    } else {
+      blockedCol = random.nextInt(4);
+      blockedRow = null;
+      print("PITSTOP : colonne $blockedCol bloquée !");
     }
+  }
+
+  void undoMove() {
+    if (gameStates.isEmpty) return;
+    final GameState previousState = gameStates.removeLast();
     setState(() {
       grid = previousState.previousGrid;
-      mergeFn();
-      controller.reverse(from: .99).then((_) {
-        setState(() {
-          grid = previousState.previousGrid;
-          for (final t in gridTiles) {
-            t.resetAnimations();
-          }
-        });
-      });
+      for (final t in gridTiles) {
+        t.resetAnimations();
+      }
     });
   }
 
@@ -332,13 +343,19 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
         mergeFn = mergeRight;
         break;
     }
+
     final List<List<AnimatedTiles>> gridBeforeSwipe =
     grid.map((row) => row.map((tile) => tile.copy()).toList()).toList();
+
     setState(() {
       if (mergeFn()) {
         gameStates.add(GameState(gridBeforeSwipe, direction));
         addNewTiles([2]);
         controller.forward(from: 0);
+
+        // Débloque la ligne ou colonne après le mouvement
+        blockedRow = null;
+        blockedCol = null;
       }
     });
   }
@@ -351,13 +368,21 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
   bool mergeTiles(List<AnimatedTiles> tiles) {
     bool didChange = false;
     for (int i = 0; i < tiles.length; i++) {
+      if ((blockedRow != null && tiles[i].y == blockedRow) ||
+          (blockedCol != null && tiles[i].x == blockedCol)) continue;
+
       for (int j = i; j < tiles.length; j++) {
+        if ((blockedRow != null && tiles[j].y == blockedRow) ||
+            (blockedCol != null && tiles[j].x == blockedCol)) continue;
+
         if (tiles[j].value != 0) {
-          int k = tiles.indexWhere((t) => t.value != 0, j + 1);
+          int k = tiles.indexWhere((t) => t.value != 0 &&
+              !((blockedRow != null && t.y == blockedRow) ||
+                  (blockedCol != null && t.x == blockedCol)), j + 1);
+
           AnimatedTiles? mergeTile = (k != -1) ? tiles[k] : null;
-          if (mergeTile != null && mergeTile.value != tiles[j].value) {
-            mergeTile = null;
-          }
+          if (mergeTile != null && mergeTile.value != tiles[j].value) mergeTile = null;
+
           if (i != j || mergeTile != null) {
             didChange = true;
             int resultValue = tiles[j].value;
@@ -430,6 +455,9 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
         t.resetAnimations();
       }
       toAdd.clear();
+      blockedRow = null;
+      blockedCol = null;
+      pitStopToggle = true;
       addNewTiles([2, 2]);
       controller.forward(from: 0);
     });
