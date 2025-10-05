@@ -429,11 +429,15 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       int randomJ = random.nextInt(4);
       bool ok = false;
       while (!ok) {
-        if (grid[randomI][randomJ].value != 0) {
-          grid[randomI][randomJ].value = 0;
-          ok=true;
-        }
-        else {
+        final tile = grid[randomI][randomJ];
+        if (tile.value != 0) {
+          setState(() {
+            tile.value = 0;
+            tile.changeNumber(controller, 0);
+            tile.resetAnimations();
+          });
+          ok = true;
+        } else {
           randomI = random.nextInt(4);
           randomJ = random.nextInt(4);
         }
