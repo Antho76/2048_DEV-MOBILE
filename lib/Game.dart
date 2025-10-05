@@ -79,8 +79,7 @@ class GameState {
   final List<List<AnimatedTiles>> _previousGrid;
   final SwipeDirection swipe;
 
-  GameState(List<List<AnimatedTiles>> previousGrid, this.swipe)
-      : _previousGrid = previousGrid;
+  GameState(List<List<AnimatedTiles>> previousGrid, this.swipe) : _previousGrid = previousGrid;
 
   List<List<AnimatedTiles>> get previousGrid =>
       _previousGrid.map((row) => row.map((tile) => tile.copy()).toList()).toList();
@@ -88,13 +87,14 @@ class GameState {
 
 class TwentyFortyEight extends StatefulWidget {
   const TwentyFortyEight({super.key});
+
   @override
   TwentyFortyEightState createState() => TwentyFortyEightState();
 }
 
-class TwentyFortyEightState extends State<TwentyFortyEight>
-    with SingleTickerProviderStateMixin {
+class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerProviderStateMixin {
   late AnimationController controller;
+
   List<List<AnimatedTiles>> grid =
   List.generate(4, (y) => List.generate(4, (x) => AnimatedTiles(x, y, 0)));
   List<GameState> gameStates = [];
@@ -103,14 +103,19 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
   int? blockedCol;
   bool pitStopToggle = true; // pour activer le pitstop une fois sur deux
 
+  String? eventMessage;
+  bool _isInputLocked = false;
   Iterable<AnimatedTiles> get gridTiles => grid.expand((e) => e);
   Iterable<AnimatedTiles> get allTiles => [gridTiles, toAdd].expand((e) => e);
   List<List<AnimatedTiles>> get gridCols =>
       List.generate(4, (x) => List.generate(4, (y) => grid[y][x]));
 
+  Timer? aiTimer;
+
   @override
   void initState() {
     super.initState();
+
     controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
     controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -122,33 +127,30 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
             t.resetAnimations();
           }
           toAdd.clear();
-
-          // PITSTOP une fois sur deux
-          if (pitStopToggle) {
-            pitStop();
-          }
-          pitStopToggle = !pitStopToggle;
-
-          // RedFlag aléatoire
-          int event = Random().nextInt(10);
-          if (event == 2) {
+          int number = 0;
+          number=Random().nextInt(30);
+          if(number==1){
             redFlag(grid);
           }
-
-          if (isGameOver(grid)) {
-            Future.delayed(const Duration(milliseconds: 300), () {
+          if(number==2){
+            pitStop();
+          }
+          if (isGameOver(grid)){
+            Future.delayed(const Duration(milliseconds: 300), (){
               _showDialog(context);
             });
           }
         });
       }
     });
+
     setupNewGame();
   }
 
   @override
   void dispose() {
     controller.dispose();
+    aiTimer?.cancel();
     super.dispose();
   }
 
@@ -159,6 +161,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
     final double gridSize = MediaQuery.of(context).size.width - contentPadding * 2;
     final double tileSize = (gridSize - borderSize * 2) / 4;
     List<Widget> stackItems = [];
+
 
     stackItems.addAll(gridTiles.map((t) => TileWidget(
       x: tileSize * t.x,
@@ -189,70 +192,84 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
     }));
 
     return Scaffold(
-      backgroundColor: Background,
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(contentPadding),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
-                Image.asset("assets/img/f1_logo.png", height: 80),
-                const SizedBox(height: 4),
-                const Text(
-                  "2048",
-                  style: TextStyle(
-                    fontFamily: "Formula1",
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
+      backgroundColor: Background, // Fond principal
+      body: Padding(
+        padding: const EdgeInsets.all(contentPadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+              Image.asset(
+                "assets/img/f1_logo.png",
+                height: 80,
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "2048",
+                style: TextStyle(
+                  fontFamily: "Formula1",
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
                 ),
-                const SizedBox(height: 16),
-                Swiper(
-                  up: () => merge(SwipeDirection.up),
-                  down: () => merge(SwipeDirection.down),
-                  left: () => merge(SwipeDirection.left),
-                  right: () => merge(SwipeDirection.right),
-                  child: Container(
-                    height: gridSize,
-                    width: gridSize,
-                    padding: const EdgeInsets.all(borderSize),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(cornerRadius),
-                      color: gridBackground,
+              ),
+            const SizedBox(height: 16), // espace entre l'image et la grille
+
+            // Grille
+            Swiper(
+              up: () => !_isInputLocked ? merge(SwipeDirection.up) : null,
+              down: () => !_isInputLocked ? merge(SwipeDirection.down) : null,
+              left: () => !_isInputLocked ? merge(SwipeDirection.left) : null,
+              right: () => !_isInputLocked ? merge(SwipeDirection.right) : null,
+              child: Container(
+                height: gridSize,
+                width: gridSize,
+                padding: const EdgeInsets.all(borderSize),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(cornerRadius),
+                  color: gridBackground, // couleur de la grille
+                ),
+                child: Stack(children: stackItems),
+              ),
+            ),
+            const SizedBox(height: 24), // espace entre grille et boutons
+
+            if (eventMessage != null) ...[
+              const SizedBox(height: 16),
+              AnimatedOpacity(
+                opacity: eventMessage != null ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: Column(
+                  children: [
+                    const Text(
+                      "🏁 Fait de course ! 🏁",
+                      style: TextStyle(
+                        fontFamily: "Formula1",
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    child: Stack(children: stackItems),
-                  ),
+                    const SizedBox(height: 16),
+                    Text(
+                      eventMessage!,
+                      style: const TextStyle(
+                        fontFamily: "Formula1",
+                        fontSize: 18,
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                BigButton(
-                  label: "Undo",
-                  color: numColor,
-                  onPressed: gameStates.isEmpty ? null : undoMove,
-                ),
-                const SizedBox(height: 12),
-                BigButton(
-                  label: "Restart",
-                  color: orange,
-                  onPressed: setupNewGame,
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 40,
-            left: 16,
-            child: IconButton(
-              icon: const Icon(Icons.home, color: Colors.black, size: 32),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              tooltip: "Retour au menu",
-            ),
-          ),
-        ],
+              ),
+            ],
+
+          ],
+
+
+        ),
       ),
     );
   }
@@ -272,13 +289,33 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
   }
 
   void undoMove() {
-    if (gameStates.isEmpty) return;
     final GameState previousState = gameStates.removeLast();
+    late bool Function() mergeFn;
+    switch (previousState.swipe) {
+      case SwipeDirection.up:
+        mergeFn = mergeUp;
+        break;
+      case SwipeDirection.down:
+        mergeFn = mergeDown;
+        break;
+      case SwipeDirection.left:
+        mergeFn = mergeLeft;
+        break;
+      case SwipeDirection.right:
+        mergeFn = mergeRight;
+        break;
+    }
     setState(() {
-      grid = previousState.previousGrid;
-      for (final t in gridTiles) {
-        t.resetAnimations();
-      }
+      this.grid = previousState.previousGrid;
+      mergeFn();
+      controller.reverse(from: .99).then((_) {
+        setState(() {
+          this.grid = previousState.previousGrid;
+          for (final t in gridTiles) {
+            t.resetAnimations();
+          }
+        });
+      });
     });
   }
 
@@ -287,7 +324,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color.fromRGBO(30, 30, 48, 1),
+          backgroundColor: Color.fromRGBO(30,30,48,1),
           title: const Center(
             child: Text(
               "C'est la défaite",
@@ -304,19 +341,34 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
             height: 200,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/img/alonso.jpg', width: 120, height: 120),
-                const SizedBox(height: 20),
+              children:[
+                Image.asset(
+                  'assets/img/alonso.jpg',
+                  width: 120,
+                  height: 120,
+                ),
+                const SizedBox(height:20),
+
                 const Text(
                   "Engine feels good, much slower than before",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
                 ),
-              ],
+              ]
+
+              ),
             ),
-          ),
+
           actions: [
             MaterialButton(
-              child: const Text("OK", style: TextStyle(color: Colors.white)),
+              child: const Text(
+                  "OK",
+                  style: TextStyle(
+                  color: Colors.white
+                  )
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -344,6 +396,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
         break;
     }
 
+
     final List<List<AnimatedTiles>> gridBeforeSwipe =
     grid.map((row) => row.map((tile) => tile.copy()).toList()).toList();
 
@@ -361,8 +414,11 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
   }
 
   bool mergeLeft() => grid.map((e) => mergeTiles(e)).toList().any((e) => e);
+
   bool mergeRight() => grid.map((e) => mergeTiles(e.reversed.toList())).toList().any((e) => e);
+
   bool mergeUp() => gridCols.map((e) => mergeTiles(e)).toList().any((e) => e);
+
   bool mergeDown() => gridCols.map((e) => mergeTiles(e.reversed.toList())).toList().any((e) => e);
 
   bool mergeTiles(List<AnimatedTiles> tiles) {
@@ -381,7 +437,10 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
                   (blockedCol != null && t.x == blockedCol)), j + 1);
 
           AnimatedTiles? mergeTile = (k != -1) ? tiles[k] : null;
-          if (mergeTile != null && mergeTile.value != tiles[j].value) mergeTile = null;
+
+          if (mergeTile != null && mergeTile.value != tiles[j].value) {
+            mergeTile = null;
+          }
 
           if (i != j || mergeTile != null) {
             didChange = true;
@@ -413,35 +472,77 @@ class TwentyFortyEightState extends State<TwentyFortyEight>
     }
   }
 
-  void redFlag(List<List<AnimatedTiles>> grid) {
-    var random = Random();
-    int randomI = random.nextInt(4);
-    int randomJ = random.nextInt(4);
-    bool ok = false;
-    while (!ok) {
-      final tile = grid[randomI][randomJ];
-      if (tile.value != 0) {
-        setState(() {
-          tile.value = 0;
-          tile.changeNumber(controller, 0);
-          tile.resetAnimations();
-        });
-        ok = true;
-      } else {
-        randomI = random.nextInt(4);
-        randomJ = random.nextInt(4);
+  void redFlag(List<List<AnimatedTiles>> grid){
+      setState(() {
+        _isInputLocked = true;
+        eventMessage = "💥 Crash entre coéquipiers! Une écurie est éliminée !";
+      });
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            eventMessage = null;
+          });
+        }
+
+      var random = Random();
+      int randomI = random.nextInt(4);
+      int randomJ = random.nextInt(4);
+      bool ok = false;
+      while (!ok) {
+        final tile = grid[randomI][randomJ];
+        if (tile.value != 0) {
+          setState(() {
+            tile.value = 0;
+            tile.changeNumber(controller, 0);
+            tile.resetAnimations();
+
+            eventMessage = "💥 Crash entre coéquipiers! Une écurie est éliminée !";
+          });
+
+          ok = true;
+        } else {
+          randomI = random.nextInt(4);
+          randomJ = random.nextInt(4);
+        }
       }
-    }
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            setState(() {
+              eventMessage = null;
+              _isInputLocked = false;
+            });
+          }
+        });
+      });
+
   }
 
   bool isGameOver(List<List<AnimatedTiles>> grid) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        if (grid[i][j].value == 0) return false;
-        if (i > 0 && grid[i][j].value == grid[i - 1][j].value) return false;
-        if (i < 3 && grid[i][j].value == grid[i + 1][j].value) return false;
-        if (j > 0 && grid[i][j].value == grid[i][j - 1].value) return false;
-        if (j < 3 && grid[i][j].value == grid[i][j + 1].value) return false;
+        if (grid[i][j].value == 0) {
+          print(1);
+          return false; // Il reste une case vide
+        }
+        if (i > 0 && grid[i][j].value == grid[i - 1][j].value) {
+          print(2);
+          return false; // Fusion possible en haut
+        }
+        if (i < 3 && grid[i][j].value == grid[i + 1][j].value) {
+          print(3);
+          return false; // Fusion possible en bas
+
+        }
+        if (j > 0 && grid[i][j].value == grid[i][j - 1].value) {
+          print(4);
+          return false; // Fusion possible à gauche
+
+        }
+        if (j < 3 && grid[i][j].value == grid[i][j + 1].value)
+        {
+          print(5);
+          return false;
+        } // Fusion possible à droite
       }
     }
     return true;
