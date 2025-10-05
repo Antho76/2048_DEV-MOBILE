@@ -1,6 +1,7 @@
 import 'package:devmobile/AnimatedTiles.dart';
 import 'dart:async';
 import 'EndGamePopUp.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:devmobile/grid-properties.dart';
 
@@ -121,6 +122,9 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             t.resetAnimations();
           }
           toAdd.clear();
+          if(Random().nextInt(2)==1){
+            redFlag(grid);
+          }
           if (isGameOver(grid)){
             Future.delayed(const Duration(milliseconds: 300), (){
               _showDialog(context);
@@ -366,6 +370,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
 
   bool mergeTiles(List<AnimatedTiles> tiles) {
     bool didChange = false;
+
     for (int i = 0; i < tiles.length; i++) {
       for (int j = i; j < tiles.length; j++) {
         if (tiles[j].value != 0) {
@@ -395,6 +400,18 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         }
       }
     }
+
+    //events part
+    var random = Random();
+    int randomEvent = random.nextInt(2);
+    /*if(randomEvent==1){
+      Future.microtask(() {
+        setState(() {
+          redFlag(grid);
+        });
+      });
+      }*/
+
     return didChange;
   }
 
@@ -404,6 +421,23 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     for (int i = 0; i < values.length; i++) {
       toAdd.add(AnimatedTiles(empty[i].x, empty[i].y, values[i])..appear(controller));
     }
+  }
+
+  void redFlag(List<List<AnimatedTiles>> grid){
+      var random = Random();
+      int randomI = random.nextInt(4);
+      int randomJ = random.nextInt(4);
+      bool ok = false;
+      while (!ok) {
+        if (grid[randomI][randomJ].value != 0) {
+          grid[randomI][randomJ].value = 0;
+          ok=true;
+        }
+        else {
+          randomI = random.nextInt(4);
+          randomJ = random.nextInt(4);
+        }
+      }
   }
 
   bool isGameOver(List<List<AnimatedTiles>> grid) {
