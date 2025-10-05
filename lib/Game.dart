@@ -1,6 +1,6 @@
 import 'package:devmobile/AnimatedTiles.dart';
 import 'dart:async';
-
+import 'EndGamePopUp.dart';
 import 'package:flutter/material.dart';
 import 'package:devmobile/grid-properties.dart';
 
@@ -35,6 +35,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   // Utiliser AnimatedTiles (pas Tile)
   List<List<AnimatedTiles>> grid =
   List.generate(4, (y) => List.generate(4, (x) => AnimatedTiles(x, y, 0)));
+
   List<GameState> gameStates = [];
   List<AnimatedTiles> toAdd = [];
 
@@ -61,6 +62,11 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             t.resetAnimations();
           }
           toAdd.clear();
+          if (isGameOver(grid)){
+            Future.delayed(const Duration(milliseconds: 300), (){
+              _showDialog(context);
+            });
+          }
         });
       }
     });
@@ -127,6 +133,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
                       ))),
               // BigButton doit accepter un onPressed nullable pour que `null` désactive le bouton.
               BigButton(label: "Undo", color: numColor, onPressed: gameStates.isEmpty ? null : undoMove),
+              BigButton(label: "Popup", color: orange, onPressed:() => _showDialog(context)),
               BigButton(label: "Restart", color: orange, onPressed: setupNewGame),
             ])));
   }
@@ -162,6 +169,66 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     });
   }
 
+  void _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color.fromRGBO(30,30,48,1),
+          title: const Center(
+            child: Text(
+              "C'est la défaite",
+              style: TextStyle(
+                fontFamily: "Formula1",
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              )
+          ),
+          ),
+          content: SizedBox(
+            width:500,
+            height:200,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children:[
+                Image.asset(
+                  'assets/img/alonso.jpg',
+                  width: 120,
+                  height: 120,
+                ),
+                const SizedBox(height:20),
+
+                const Text(
+                  "Engine feels good, much slower than before",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
+                ),
+              ]
+
+              ),
+            ),
+
+          actions: [
+            MaterialButton(
+              child: const Text(
+                  "OK",
+                  style: TextStyle(
+                  color: Colors.white
+                  )
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void merge(SwipeDirection direction) {
     late bool Function() mergeFn;
     switch (direction) {
@@ -188,6 +255,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         gameStates.add(GameState(gridBeforeSwipe, direction));
         addNewTiles([2]);
         controller.forward(from: 0);
+
       }
     });
   }
@@ -245,7 +313,61 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     }
   }
 
-  void setupNewGame() {
+  List<List<AnimatedTiles>> createTestGrid(List<List<int>> values) {
+    final int size = values.length;
+    List<List<AnimatedTiles>> grid = [];
+
+    for (int i = 0; i < size; i++) {
+      List<AnimatedTiles> row = [];
+      for (int j = 0; j < size; j++) {
+        row.add(AnimatedTiles(i, j, values[i][j]));
+      }
+      grid.add(row);
+    }
+
+    return grid;
+  }
+
+  //fixed grid size
+  bool isGameOver(List<List<AnimatedTiles>> grid) {
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+          if (grid[i][j].value == 0) {
+            print(1);
+            return false; // Il reste une case vide
+          }
+          if (i > 0 && grid[i][j].value == grid[i - 1][j].value) {
+            print(2);
+            return false; // Fusion possible en haut
+          }
+          if (i < 3 && grid[i][j].value == grid[i + 1][j].value) {
+            print(3);
+            return false; // Fusion possible en bas
+
+          }
+          if (j > 0 && grid[i][j].value == grid[i][j - 1].value) {
+            print(4);
+            return false; // Fusion possible à gauche
+
+          }
+          if (j < 3 && grid[i][j].value == grid[i][j + 1].value)
+            {
+              print(5);
+              return false;
+          } // Fusion possible à droite
+        }
+      }
+      for(int i=0;i<4;i++){
+        for(int j=0;j<4;j++){
+          print(grid[i][j].value);
+        }
+      }
+      return true; // Aucune case vide et aucune fusion possible
+  }
+
+
+
+  /*void setupNewGame() {
     setState(() {
       gameStates.clear();
       for (final t in gridTiles) {
@@ -256,5 +378,30 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       addNewTiles([2, 2]);
       controller.forward(from: 0);
     });
+  }*/
+  void setupNewGame() {
+    setState(() {
+      gameStates.clear();
+      toAdd.clear();
+
+      // Valeurs de départ souhaitées
+      List<List<int>> startValues = [
+        [4, 2, 8, 2],
+        [8, 32, 4, 8],
+        [4, 128, 16, 4],
+        [2, 8, 4, 0],
+      ];
+
+      // Appliquer ces valeurs à la grille
+      for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 4; x++) {
+          grid[y][x].value = startValues[y][x];
+          grid[y][x].resetAnimations();
+        }
+      }
+
+      controller.forward(from: 0);
+    });
   }
+
 }
