@@ -1,6 +1,5 @@
 import 'package:devmobile/home.dart';
 import 'package:flutter/material.dart';
-import 'Game.dart'; // 👈 importer ton fichier';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +19,7 @@ class MyApp extends StatelessWidget {
         home: Scaffold(
             body: const Center(
               child: HomePage(),
-            ),// 👈 ici on appelle le widget
+            ),
     ),
     );
   }
