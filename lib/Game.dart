@@ -159,8 +159,18 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
 
   @override
   Widget build(BuildContext context) {
-    const double contentPadding = 16;
-    const double borderSize = 4;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+
+    final double baseSize = screenWidth < screenHeight ? screenWidth : screenHeight;
+
+
+    final double contentPadding = baseSize * 0.02;
+    final double borderSize = baseSize * 0.004;
+
+
+
     final double gridSize = MediaQuery
         .of(context)
         .size
@@ -205,25 +215,25 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         children: [
           // Contenu principal
           Padding(
-            padding: const EdgeInsets.all(contentPadding),
+            padding: EdgeInsets.all(contentPadding),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Image.asset(
                   "assets/img/f1_logo.png",
-                  height: 80,
+                  height: baseSize*0.3,
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: baseSize*0.01),
+                Text(
                   "2048",
                   style: TextStyle(
                     fontFamily: "Formula1",
-                    fontSize: 26,
+                    fontSize: baseSize*0.04,
                     fontWeight: FontWeight.bold,
                     color: Colors.red,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: baseSize*0.02),
                 Swiper(
                   up: () => !_isInputLocked ? merge(SwipeDirection.up) : null,
                   down: () =>
@@ -241,7 +251,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
                   child: Container(
                     height: gridSize,
                     width: gridSize,
-                    padding: const EdgeInsets.all(borderSize),
+                    padding: EdgeInsets.all(borderSize),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(cornerRadius),
                       color: gridBackground,
@@ -249,30 +259,30 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
                     child: Stack(children: stackItems),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: baseSize*0.03),
                 if (eventMessage != null) ...[
-                  const SizedBox(height: 16),
+                  SizedBox(height: baseSize*0.02),
                   AnimatedOpacity(
                     opacity: eventMessage != null ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           "🏁 Fait de course ! 🏁",
                           style: TextStyle(
                             fontFamily: "Formula1",
-                            fontSize: 18,
+                            fontSize: baseSize*0.04,
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: baseSize*0.04),
                         Text(
                           eventMessage!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: "Formula1",
-                            fontSize: 18,
+                            fontSize: baseSize*0.04,
                             color: Colors.redAccent,
                             fontWeight: FontWeight.bold,
                           ),
@@ -288,10 +298,10 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
 
           // Bouton Home en haut à gauche
           Positioned(
-            top: 16,
-            left: 16,
+            top: baseSize*0.02,
+            left: baseSize*0.02,
             child: IconButton(
-              icon: const Icon(Icons.home, color: Colors.black, size: 32),
+              icon: Icon(Icons.home, color: Colors.black, size:baseSize*0.06),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -595,28 +605,23 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         if (grid[i][j].value == 0) {
-          print(1);
-          return false; // Il reste une case vide
+          return false;
         }
         if (i > 0 && grid[i][j].value == grid[i - 1][j].value) {
-          print(2);
-          return false; // Fusion possible en haut
+          return false;
         }
         if (i < 3 && grid[i][j].value == grid[i + 1][j].value) {
-          print(3);
-          return false; // Fusion possible en bas
+          return false;
 
         }
         if (j > 0 && grid[i][j].value == grid[i][j - 1].value) {
-          print(4);
-          return false; // Fusion possible à gauche
+          return false;
 
         }
         if (j < 3 && grid[i][j].value == grid[i][j + 1].value)
         {
-          print(5);
           return false;
-        } // Fusion possible à droite
+        }
       }
     }
     return true;

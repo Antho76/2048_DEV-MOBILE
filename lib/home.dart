@@ -13,16 +13,21 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+
+    final double baseSize = screenWidth < screenHeight ? screenWidth : screenHeight;
     return SizedBox(
-      width: 300,
-      height: 60,
+      width: baseSize*0.8,
+      height: baseSize*0.2,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(baseSize*0.08),
           ),
         ),
         child: child,
@@ -52,31 +57,36 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+
+    final double baseSize = screenWidth < screenHeight ? screenWidth : screenHeight;
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 40),
+            SizedBox(height: baseSize*0.08),
             Column(
               children: [
                 Image.asset(
                   "assets/img/f1_logo.png",
-                  height: 80,
+                  height: baseSize*0.2,
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: baseSize*0.01),
+                Text(
                   "2048",
                   style: TextStyle(
                     fontFamily: "Formula1",
-                    fontSize: 26,
+                    fontSize: baseSize*0.05,
                     fontWeight: FontWeight.bold,
                     color: Colors.red,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 80),
+            SizedBox(height: baseSize*0.2),
 
             // Play
             MenuButton(
