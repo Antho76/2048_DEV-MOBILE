@@ -230,7 +230,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             ),
           ),
 
-          // Messages événements (au-dessus du jeu, ne bouge rien)
           if (eventMessage != null)
           Align(
             alignment: Alignment.bottomCenter,

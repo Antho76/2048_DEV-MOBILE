@@ -121,7 +121,7 @@ class TileNumber extends StatelessWidget {
 class BigButton extends StatelessWidget {
   final String label;
   final Color color;
-  final VoidCallback? onPressed; // nullable pour gérer "désactivé"
+  final VoidCallback? onPressed;
 
   const BigButton({
     super.key,
