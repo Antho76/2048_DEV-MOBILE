@@ -79,7 +79,8 @@ class GameState {
   final List<List<AnimatedTiles>> _previousGrid;
   final SwipeDirection swipe;
 
-  GameState(List<List<AnimatedTiles>> previousGrid, this.swipe) : _previousGrid = previousGrid;
+  GameState(List<List<AnimatedTiles>> previousGrid, this.swipe)
+      : _previousGrid = previousGrid;
 
   List<List<AnimatedTiles>> get previousGrid =>
       _previousGrid.map((row) => row.map((tile) => tile.copy()).toList()).toList();
@@ -92,7 +93,8 @@ class TwentyFortyEight extends StatefulWidget {
   TwentyFortyEightState createState() => TwentyFortyEightState();
 }
 
-class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerProviderStateMixin {
+class TwentyFortyEightState extends State<TwentyFortyEight>
+    with SingleTickerProviderStateMixin {
   late AnimationController controller;
 
   List<List<AnimatedTiles>> grid =
@@ -101,21 +103,18 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   List<AnimatedTiles> toAdd = [];
   int? blockedRow;
   int? blockedCol;
-  bool pitStopToggle = true; // pour activer le pitstop une fois sur deux
-
+  bool pitStopToggle = true;
   String? eventMessage;
   bool _isInputLocked = false;
   Iterable<AnimatedTiles> get gridTiles => grid.expand((e) => e);
   Iterable<AnimatedTiles> get allTiles => [gridTiles, toAdd].expand((e) => e);
   List<List<AnimatedTiles>> get gridCols =>
       List.generate(4, (x) => List.generate(4, (y) => grid[y][x]));
-
   Timer? aiTimer;
 
   @override
   void initState() {
     super.initState();
-
     controller = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
     controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -127,26 +126,18 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             t.resetAnimations();
           }
           toAdd.clear();
-          int number = 0;
-          number=Random().nextInt(10);
-          if(number==4){
-            redFlag(grid);
-          }
-          if(number==2){
-            pitStop();
-          }
-          if(number==1){
-            yellowFlag();
-          }
-          if (isGameOver(grid)){
-            Future.delayed(const Duration(milliseconds: 300), (){
+          int number = Random().nextInt(50);
+          if (number == 4) redFlag(grid);
+          if (number == 2) pitStop();
+          if (number == 1) yellowFlag();
+          if (isGameOver(grid)) {
+            Future.delayed(const Duration(milliseconds: 300), () {
               _showDialog(context);
             });
           }
         });
       }
     });
-
     setupNewGame();
   }
 
@@ -161,30 +152,24 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   Widget build(BuildContext context) {
     const double contentPadding = 16;
     const double borderSize = 4;
-    final double gridSize = MediaQuery
-        .of(context)
-        .size
-        .width - contentPadding * 2;
+    final double gridSize = MediaQuery.of(context).size.width - contentPadding * 2;
     final double tileSize = (gridSize - borderSize * 2) / 4;
     List<Widget> stackItems = [];
 
-
-    stackItems.addAll(gridTiles.map((t) =>
-        TileWidget(
-          x: tileSize * t.x,
-          y: tileSize * t.y,
-          containerSize: tileSize,
-          size: tileSize - borderSize * 2,
-          color: gridLine,
-          child: const SizedBox(),
-        )));
+    stackItems.addAll(gridTiles.map((t) => TileWidget(
+      x: tileSize * t.x,
+      y: tileSize * t.y,
+      containerSize: tileSize,
+      size: tileSize - borderSize * 2,
+      color: gridLine,
+      child: const SizedBox(),
+    )));
 
     stackItems.addAll(allTiles.map((tile) {
       bool isBlocked = (blockedRow == tile.y) || (blockedCol == tile.x);
       return AnimatedBuilder(
         animation: controller,
-        builder: (context, child) =>
-        tile.animatedValue.value == 0
+        builder: (context, child) => tile.animatedValue.value == 0
             ? const SizedBox()
             : TileWidgetWithImage(
           x: tileSize * tile.animatedX.value,
@@ -203,59 +188,129 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       backgroundColor: Background,
       body: Stack(
         children: [
-          // Contenu principal
-          Padding(
-            padding: const EdgeInsets.all(contentPadding),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Image.asset(
-                  "assets/img/f1_logo.png",
-                  height: 80,
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  "2048",
-                  style: TextStyle(
-                    fontFamily: "Formula1",
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Swiper(
-                  up: () => !_isInputLocked ? merge(SwipeDirection.up) : null,
-                  down: () =>
-                  !_isInputLocked
-                      ? merge(SwipeDirection.down)
-                      : null,
-                  left: () =>
-                  !_isInputLocked
-                      ? merge(SwipeDirection.left)
-                      : null,
-                  right: () =>
-                  !_isInputLocked
-                      ? merge(SwipeDirection.right)
-                      : null,
-                  child: Container(
-                    height: gridSize,
-                    width: gridSize,
-                    padding: const EdgeInsets.all(borderSize),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(cornerRadius),
-                      color: gridBackground,
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(contentPadding),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset("assets/img/f1_logo.png", height: 80),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "2048",
+                    style: TextStyle(
+                      fontFamily: "Formula1",
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
                     ),
-                    child: Stack(children: stackItems),
                   ),
-                ),
-                const SizedBox(height: 24),
-                if (eventMessage != null) ...[
-                  const SizedBox(height: 16),
-                  AnimatedOpacity(
-                    opacity: eventMessage != null ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
+                  const SizedBox(height: 20),
+                  Swiper(
+                    up: () => !_isInputLocked ? merge(SwipeDirection.up) : null,
+                    down: () => !_isInputLocked ? merge(SwipeDirection.down) : null,
+                    left: () => !_isInputLocked ? merge(SwipeDirection.left) : null,
+                    right: () => !_isInputLocked ? merge(SwipeDirection.right) : null,
+                    child: Container(
+                      height: gridSize,
+                      width: gridSize,
+                      padding: const EdgeInsets.all(borderSize),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(cornerRadius),
+                        color: gridBackground,
+                      ),
+                      child: Stack(children: stackItems),
+                    ),
+                  ),
+
+                  ],
+
+              ),
+            ),
+          ),
+          Positioned(
+            top: 110,
+            left: 16,
+            child: IconButton(
+              icon: const Icon(Icons.home, color: Colors.black, size: 32),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              tooltip: "Retour au menu",
+            ),
+          ),
+          Positioned(
+            top: 110,
+            right: 16,
+            child: IconButton(
+              icon: const Icon(Icons.info_outline, color: Colors.black, size: 32),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: const Color.fromRGBO(30, 30, 48, 1),
+                      title: const Center(
+                        child: Text(
+                          "Informations",
+                          style: TextStyle(
+                            fontFamily: "Formula1",
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      content: SizedBox(
+                        width: 500,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text("🏎  Pit Stop : Une ligne ou une colonne est bloquée pendant un tour.",
+                                style: TextStyle(color: Colors.white, fontSize: 16)),
+                            SizedBox(height: 10),
+                            Text("💥  Drapeau rouge : Une écurie est éliminée (tuile supprimée).",
+                                style: TextStyle(color: Colors.white, fontSize: 16)),
+                            SizedBox(height: 10),
+                            Text("⚠️  Drapeau jaune : Une tuile est divisée par deux.",
+                                style: TextStyle(color: Colors.white, fontSize: 16)),
+                            SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text("Fermer", style: TextStyle(color: Colors.redAccent)),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+
+          if (eventMessage != null)
+            Positioned.fill(
+              child: Align(
+                alignment: const Alignment(0, 0.8), // 0.8 = un peu au-dessus du bas
+                child: AnimatedOpacity(
+                  opacity: eventMessage != null ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
                           "🏁 Fait de course ! 🏁",
@@ -267,12 +322,12 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
                         Text(
                           eventMessage!,
                           style: const TextStyle(
                             fontFamily: "Formula1",
-                            fontSize: 18,
+                            fontSize: 16,
                             color: Colors.redAccent,
                             fontWeight: FontWeight.bold,
                           ),
@@ -281,47 +336,31 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
                       ],
                     ),
                   ),
-                ],
-              ],
+                ),
+              ),
             ),
-          ),
-
-          // Bouton Home en haut à gauche
-          Positioned(
-            top: 16,
-            left: 16,
-            child: IconButton(
-              icon: const Icon(Icons.home, color: Colors.black, size: 32),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              tooltip: "Retour au menu",
-            ),
-          ),
         ],
+
       ),
     );
   }
 
-    void pitStop() {
-
+  void pitStop() {
     var random = Random();
     bool blockRowFlag = random.nextBool();
     if (blockRowFlag) {
-
       blockedRow = random.nextInt(4);
       blockedCol = null;
       setState(() {
         _isInputLocked = true;
-        eventMessage = "🏎 PitStop! Ligne ${blockedRow!+1} bloquée pour le prochain coup!";
+        eventMessage = "🏎 PitStop! Ligne ${blockedRow! + 1} bloquée pour le prochain coup!";
       });
-
     } else {
       blockedCol = random.nextInt(4);
       blockedRow = null;
       setState(() {
         _isInputLocked = true;
-        eventMessage = "🏎 PitStop! Colonne ${blockedCol!+1} bloquée pour le prochain coup!";
+        eventMessage = "🏎 PitStop! Colonne ${blockedCol! + 1} bloquée pour le prochain coup!";
       });
     }
     Future.delayed(const Duration(seconds: 2), () {
@@ -335,7 +374,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   }
 
   void yellowFlag() {
-
     final List<AnimatedTiles> candidates = gridTiles.where((t) => t.value > 2).toList();
     if (candidates.isEmpty) return;
     setState(() {
@@ -346,9 +384,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       tile.value = tile.value ~/ 2;
       tile.changeNumber(controller, tile.value);
       tile.bounce(controller);
-    });
-    setState(() {
-
       eventMessage = "DRAPEAU JAUNE : tuile (${tile.x}, ${tile.y}) est divisé par 2 ! -> ${tile.value} !";
     });
     Future.delayed(const Duration(seconds: 2), () {
@@ -359,7 +394,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         });
       }
     });
-
   }
 
   void undoMove() {
@@ -380,11 +414,11 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         break;
     }
     setState(() {
-      this.grid = previousState.previousGrid;
+      grid = previousState.previousGrid;
       mergeFn();
       controller.reverse(from: .99).then((_) {
         setState(() {
-          this.grid = previousState.previousGrid;
+          grid = previousState.previousGrid;
           for (final t in gridTiles) {
             t.resetAnimations();
           }
@@ -398,7 +432,7 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Color.fromRGBO(30,30,48,1),
+          backgroundColor: const Color.fromRGBO(30, 30, 48, 1),
           title: const Center(
             child: Text(
               "C'est la défaite",
@@ -415,34 +449,19 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             height: 200,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children:[
-                Image.asset(
-                  'assets/img/alonso.jpg',
-                  width: 120,
-                  height: 120,
-                ),
-                const SizedBox(height:20),
-
+              children: [
+                Image.asset('assets/img/alonso.jpg', width: 120, height: 120),
+                const SizedBox(height: 20),
                 const Text(
                   "Engine feels good, much slower than before",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
-              ]
-
-              ),
+              ],
             ),
-
+          ),
           actions: [
             MaterialButton(
-              child: const Text(
-                  "OK",
-                  style: TextStyle(
-                  color: Colors.white
-                  )
-              ),
+              child: const Text("OK", style: TextStyle(color: Colors.white)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -470,7 +489,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         break;
     }
 
-
     final List<List<AnimatedTiles>> gridBeforeSwipe =
     grid.map((row) => row.map((tile) => tile.copy()).toList()).toList();
 
@@ -479,8 +497,6 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
         gameStates.add(GameState(gridBeforeSwipe, direction));
         addNewTiles([2]);
         controller.forward(from: 0);
-
-        // Débloque la ligne ou colonne après le mouvement
         blockedRow = null;
         blockedCol = null;
       }
@@ -488,11 +504,8 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
   }
 
   bool mergeLeft() => grid.map((e) => mergeTiles(e)).toList().any((e) => e);
-
   bool mergeRight() => grid.map((e) => mergeTiles(e.reversed.toList())).toList().any((e) => e);
-
   bool mergeUp() => gridCols.map((e) => mergeTiles(e)).toList().any((e) => e);
-
   bool mergeDown() => gridCols.map((e) => mergeTiles(e.reversed.toList())).toList().any((e) => e);
 
   bool mergeTiles(List<AnimatedTiles> tiles) {
@@ -506,15 +519,15 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             (blockedCol != null && tiles[j].x == blockedCol)) continue;
 
         if (tiles[j].value != 0) {
-          int k = tiles.indexWhere((t) => t.value != 0 &&
-              !((blockedRow != null && t.y == blockedRow) ||
-                  (blockedCol != null && t.x == blockedCol)), j + 1);
+          int k = tiles.indexWhere(
+                  (t) =>
+              t.value != 0 &&
+                  !((blockedRow != null && t.y == blockedRow) ||
+                      (blockedCol != null && t.x == blockedCol)),
+              j + 1);
 
           AnimatedTiles? mergeTile = (k != -1) ? tiles[k] : null;
-
-          if (mergeTile != null && mergeTile.value != tiles[j].value) {
-            mergeTile = null;
-          }
+          if (mergeTile != null && mergeTile.value != tiles[j].value) mergeTile = null;
 
           if (i != j || mergeTile != null) {
             didChange = true;
@@ -546,18 +559,17 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
     }
   }
 
-  void redFlag(List<List<AnimatedTiles>> grid){
-      setState(() {
-        _isInputLocked = true;
-        eventMessage = "💥 Crash entre coéquipiers! Une écurie est éliminée !";
-      });
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          setState(() {
-            eventMessage = null;
-          });
-        }
-
+  void redFlag(List<List<AnimatedTiles>> grid) {
+    setState(() {
+      _isInputLocked = true;
+      eventMessage = "💥 Crash entre coéquipiers! Une écurie est éliminée !";
+    });
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          eventMessage = null;
+        });
+      }
       var random = Random();
       int randomI = random.nextInt(4);
       int randomJ = random.nextInt(4);
@@ -569,54 +581,33 @@ class TwentyFortyEightState extends State<TwentyFortyEight> with SingleTickerPro
             tile.value = 0;
             tile.changeNumber(controller, 0);
             tile.resetAnimations();
-
             eventMessage = "💥 Crash entre coéquipiers! Une écurie est éliminée !";
           });
-
           ok = true;
         } else {
           randomI = random.nextInt(4);
           randomJ = random.nextInt(4);
         }
       }
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            setState(() {
-              eventMessage = null;
-              _isInputLocked = false;
-            });
-          }
-        });
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            eventMessage = null;
+            _isInputLocked = false;
+          });
+        }
       });
-
+    });
   }
 
   bool isGameOver(List<List<AnimatedTiles>> grid) {
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        if (grid[i][j].value == 0) {
-          print(1);
-          return false; // Il reste une case vide
-        }
-        if (i > 0 && grid[i][j].value == grid[i - 1][j].value) {
-          print(2);
-          return false; // Fusion possible en haut
-        }
-        if (i < 3 && grid[i][j].value == grid[i + 1][j].value) {
-          print(3);
-          return false; // Fusion possible en bas
-
-        }
-        if (j > 0 && grid[i][j].value == grid[i][j - 1].value) {
-          print(4);
-          return false; // Fusion possible à gauche
-
-        }
-        if (j < 3 && grid[i][j].value == grid[i][j + 1].value)
-        {
-          print(5);
-          return false;
-        } // Fusion possible à droite
+        if (grid[i][j].value == 0) return false;
+        if (i > 0 && grid[i][j].value == grid[i - 1][j].value) return false;
+        if (i < 3 && grid[i][j].value == grid[i + 1][j].value) return false;
+        if (j > 0 && grid[i][j].value == grid[i][j - 1].value) return false;
+        if (j < 3 && grid[i][j].value == grid[i][j + 1].value) return false;
       }
     }
     return true;
